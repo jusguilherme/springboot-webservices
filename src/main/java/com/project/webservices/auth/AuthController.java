@@ -1,5 +1,6 @@
 package com.project.webservices.auth;
 
+import com.project.webservices.config.JwtUtil;
 import com.project.webservices.entities.User;
 import com.project.webservices.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,10 @@ public class AuthController {
         User user = userRepository.findByEmail(request.getEmail());
 
         if (user != null && user.getPassword().equals(request.getPassword())) {
-            return "Login OK";
+
+            String token = JwtUtil.generateToken(user.getEmail());
+
+            return token;
         }
 
         return "Login inválido";
