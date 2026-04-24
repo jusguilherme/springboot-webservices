@@ -1,8 +1,10 @@
 package com.project.webservices.resources;
 
+import com.project.webservices.dto.UserCreateDTO;
 import com.project.webservices.dto.UserDTO;
 import com.project.webservices.entities.User;
 import com.project.webservices.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,10 +38,24 @@ public class UserResource {
     }
 
     @PostMapping
-    public ResponseEntity<User> insert(@RequestBody User obj) {
-        obj = service.insert(obj);
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getId()).toUri();
-        return ResponseEntity.created(uri).body(obj);
+    public ResponseEntity<Void> insert(@RequestBody @Valid UserCreateDTO dto) {
+
+        User user = new User(null,
+                dto.getName(),
+                dto.getEmail(),
+                dto.getPhone(),
+                dto.getPassword()
+        );
+
+        user = service.insert(user);
+
+        URI uri = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(user.getId())
+                .toUri();
+
+        return ResponseEntity.created(uri).build();
     }
 
     @DeleteMapping(value = "/{id}")
