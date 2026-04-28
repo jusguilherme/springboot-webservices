@@ -22,5 +22,14 @@ public class OrderService {
         Optional<Order> obj = repository.findById(id);
         return obj.get();
     }
+
+    public Order insert(Order order) {
+
+        if (order.getItems() == null || order.getItems().isEmpty()) {
+            throw new RuntimeException("Pedido não pode ser vazio");
+        }
+
+        return repository.save(order);
+    }
 }
 

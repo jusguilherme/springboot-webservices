@@ -16,10 +16,19 @@ import java.util.Collections;
 public class JwtFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+
+        String path = request.getServletPath();
+
+        // 🔥 IGNORA LOGIN
+        if (path.startsWith("/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String authHeader = request.getHeader("Authorization");
 
@@ -27,14 +36,12 @@ public class JwtFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
 
             String email = JwtUtil.getEmailFromToken(token);
-            // Aqui vamos validar depois
-            System.out.println("Token recebido: " + token);
 
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(
                             email,
                             null,
-                            Collections.singletonList(new SimpleGrantedAuthority("USER"))
+                            Collections.emptyList()
                     )
             );
         }
