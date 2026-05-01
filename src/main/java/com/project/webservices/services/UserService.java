@@ -1,15 +1,16 @@
 package com.project.webservices.services;
 
+import com.project.webservices.dto.UserCreateDTO;
+import com.project.webservices.dto.UserUpdateDTO;
 import com.project.webservices.entities.User;
 import com.project.webservices.repositories.UserRepository;
 import com.project.webservices.services.exceptions.DatabaseException;
 import com.project.webservices.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.ResourceAccessException;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,8 +18,13 @@ import java.util.Optional;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository repository;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserService(UserRepository repository, PasswordEncoder passwordEncoder) {
+        this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public List<User> findAll() {
         return repository.findAll();
@@ -29,8 +35,15 @@ public class UserService {
         return obj.orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
-    public User insert(User obj) {
-        return repository.save(obj);
+    public User insert(UserCreateDTO dto) {
+        User user = new User(
+                null,
+                dto.getName(),
+                dto.getEmail(),
+                dto.getPhone(),
+                passwordEncoder.encode(dto.getPassword())
+        );
+        return repository.save(user);
     }
 
     public void delete(Long id) {
@@ -43,20 +56,15 @@ public class UserService {
         }
     }
 
-    public User update(Long id, User obj) {
+    public User update(Long id, UserUpdateDTO dto) {
         try {
             User entity = repository.getReferenceById(id);
-            updateData(entity, obj);
+            entity.setName(dto.getName());
+            entity.setEmail(dto.getEmail());
+            entity.setPhone(dto.getPhone());
             return repository.save(entity);
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException(id);
         }
     }
-
-    private void updateData(User entity, User obj) {
-        entity.setName(obj.getName());
-        entity.setEmail(obj.getEmail());
-        entity.setPhone(obj.getPhone());
-    }
 }
-
